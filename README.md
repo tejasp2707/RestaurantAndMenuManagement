@@ -1,36 +1,39 @@
-# Restaurant and Menu Management System
+# Food Delivery System - Microservices
 
-A microservices-based Food Delivery System built with Spring Boot 3.x and Java 17.
+A complete microservices-based Food Delivery System built with Spring Boot 3.x and Java 17.
 
-## Repository Structure
+## Project Structure
 
 ```
-RestaurantAndMenuManagement/
-├── eureka-server/              # Service Discovery Server
+food_delivery/
+├── restaurant-service/          # Restaurant & Menu Management Service
 │   ├── src/
+│   │   └── main/
+│   │       ├── java/
+│   │       │   └── com/fooddelivery/restaurant/
+│   │       │       ├── controller/
+│   │       │       ├── service/
+│   │       │       ├── repository/
+│   │       │       ├── entity/
+│   │       │       ├── dto/
+│   │       │       ├── mapper/
+│   │       │       ├── security/
+│   │       │       ├── exception/
+│   │       │       └── config/
+│   │       └── resources/
+│   │           └── application.yml
 │   ├── pom.xml
-│   └── Dockerfile
+│   ├── Dockerfile
+│   └── docker-compose.yml
 │
-├── src/                        # Restaurant Service Source Code
-│   └── main/
-│       ├── java/
-│       │   └── com/fooddelivery/restaurant/
-│       │       ├── controller/
-│       │       ├── service/
-│       │       ├── repository/
-│       │       ├── entity/
-│       │       ├── dto/
-│       │       ├── mapper/
-│       │       ├── security/
-│       │       ├── exception/
-│       │       └── config/
-│       └── resources/
-│           └── application.yml
-│
-├── pom.xml                     # Restaurant Service Maven Config
-├── Dockerfile                  # Restaurant Service Docker
-├── docker-compose.yml          # Multi-service Docker Compose
-└── README.md                   # This file
+└── eureka-server/               # Service Discovery Server
+    ├── src/
+    │   └── main/
+    │       ├── java/
+    │       └── resources/
+    │           └── application.yml
+    ├── pom.xml
+    └── Dockerfile
 ```
 
 ## Services
@@ -42,7 +45,7 @@ RestaurantAndMenuManagement/
 
 ### 2. Restaurant Service
 - **Port:** 8081
-- **Purpose:** Restaurant and menu management microservice
+- **Purpose:** Restaurant and menu management
 - **Features:**
   - Restaurant CRUD operations
   - Menu item management
@@ -69,7 +72,13 @@ RestaurantAndMenuManagement/
 - MySQL 8.0
 - Docker (optional)
 
-## Getting Started
+## Quick Start
+
+### Clone the Repository
+```bash
+git clone https://github.com/tejasp2707/RestaurantAndMenuManagement.git
+cd RestaurantAndMenuManagement
+```
 
 ### Option 1: Run with Maven (Local Development)
 
@@ -90,73 +99,59 @@ Access Eureka Dashboard: http://localhost:8761
 
 #### 3. Start Restaurant Service
 ```bash
-# In a new terminal, from the root directory
+# In a new terminal
+cd restaurant-service
 mvn spring-boot:run
 ```
 Service will run on: http://localhost:8081
 
-### Option 2: Run with Docker Compose
+### Option 2: Run with Docker
 
+#### Build and Run Eureka Server
 ```bash
+cd eureka-server
+docker build -t eureka-server .
+docker run -d -p 8761:8761 --name eureka-server eureka-server
+```
+
+#### Build and Run Restaurant Service
+```bash
+cd restaurant-service
 docker-compose up --build
 ```
 
-This will start:
-- MySQL database (port 3306)
-- Restaurant service (port 8081)
+## Restaurant Service API
 
-**Note:** You'll need to start Eureka Server separately or add it to docker-compose.
-
-## Restaurant Service API Endpoints
-
-### Restaurant Management
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/restaurants` | Create restaurant | RESTAURANT_OWNER |
-| PUT | `/api/restaurants/{id}` | Update restaurant | Owner/ADMIN |
-| DELETE | `/api/restaurants/{id}` | Delete restaurant | ADMIN |
-| PATCH | `/api/restaurants/{id}/status` | Enable/disable restaurant | ADMIN |
-| GET | `/api/restaurants/{id}` | Get restaurant by ID | Public |
-| GET | `/api/restaurants` | Get all restaurants | Public |
-| GET | `/api/restaurants/owner/{ownerId}` | Get restaurants by owner | Public |
-
-### Menu Management
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/restaurants/{restaurantId}/menu` | Add menu item | Owner/ADMIN |
-| PUT | `/api/menu/{menuId}` | Update menu item | Owner/ADMIN |
-| DELETE | `/api/menu/{menuId}` | Delete menu item | Owner/ADMIN |
-| PATCH | `/api/menu/{menuId}/status` | Enable/disable menu item | Owner/ADMIN |
-| GET | `/api/restaurants/{restaurantId}/menu` | Get menu items | Public |
-| GET | `/api/menu/{menuId}` | Get menu item by ID | Public |
-
-## Authentication
-
-All protected endpoints require a JWT token in the Authorization header:
-
+### Authentication
+All protected endpoints require a JWT token:
 ```
 Authorization: Bearer <jwt_token>
 ```
 
-The JWT token must contain:
-- `userId`: User ID
-- `role`: Either `ROLE_ADMIN` or `ROLE_RESTAURANT_OWNER`
+### Restaurant Endpoints
 
-## Authorization Rules
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/api/restaurants` | Create restaurant | RESTAURANT_OWNER |
+| PUT | `/api/restaurants/{id}` | Update restaurant | Owner/ADMIN |
+| DELETE | `/api/restaurants/{id}` | Delete restaurant | ADMIN |
+| PATCH | `/api/restaurants/{id}/status` | Enable/disable | ADMIN |
+| GET | `/api/restaurants/{id}` | Get by ID | Public |
+| GET | `/api/restaurants` | Get all | Public |
+| GET | `/api/restaurants/owner/{ownerId}` | Get by owner | Public |
 
-### ADMIN
-- Can delete any restaurant
-- Can enable/disable any restaurant
-- Can manage all menu items
+### Menu Endpoints
 
-### RESTAURANT_OWNER
-- Can create restaurants
-- Can update only their own restaurants
-- Can manage menu items only for their own restaurants
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/api/restaurants/{restaurantId}/menu` | Add menu item | Owner/ADMIN |
+| PUT | `/api/menu/{menuId}` | Update menu item | Owner/ADMIN |
+| DELETE | `/api/menu/{menuId}` | Delete menu item | Owner/ADMIN |
+| PATCH | `/api/menu/{menuId}/status` | Enable/disable | Owner/ADMIN |
+| GET | `/api/restaurants/{restaurantId}/menu` | Get menu items | Public |
+| GET | `/api/menu/{menuId}` | Get by ID | Public |
 
-## Example API Requests
+## Example Requests
 
 ### Create Restaurant
 ```bash
@@ -171,11 +166,6 @@ curl -X POST http://localhost:8081/api/restaurants \
   }'
 ```
 
-### Get All Restaurants (Public)
-```bash
-curl http://localhost:8081/api/restaurants
-```
-
 ### Add Menu Item
 ```bash
 curl -X POST http://localhost:8081/api/restaurants/1/menu \
@@ -183,7 +173,7 @@ curl -X POST http://localhost:8081/api/restaurants/1/menu \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Margherita Pizza",
-    "description": "Classic pizza with tomato and mozzarella",
+    "description": "Classic pizza",
     "price": 12.99,
     "category": "Pizza"
   }'
@@ -191,15 +181,14 @@ curl -X POST http://localhost:8081/api/restaurants/1/menu \
 
 ## Configuration
 
-### Restaurant Service Configuration
-Edit `src/main/resources/application.yml`:
-
+### Restaurant Service
+Edit `restaurant-service/src/main/resources/application.yml`:
 ```yaml
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/restaurant_db
     username: root
-    password: your_password
+    password: root
 
 eureka:
   client:
@@ -210,81 +199,60 @@ jwt:
   secret: your_jwt_secret_key
 ```
 
-### Eureka Server Configuration
+### Eureka Server
 Edit `eureka-server/src/main/resources/application.yml` as needed.
 
 ## Database Schema
 
 ### restaurants
-- `id` (BIGINT, PK)
-- `name` (VARCHAR)
-- `description` (VARCHAR)
-- `address` (VARCHAR)
-- `phone` (VARCHAR)
-- `owner_id` (BIGINT)
-- `active` (BOOLEAN)
-- `created_at` (TIMESTAMP)
-- `updated_at` (TIMESTAMP)
+- id, name, description, address, phone
+- owner_id, active
+- created_at, updated_at
 
 ### menu_items
-- `id` (BIGINT, PK)
-- `restaurant_id` (BIGINT)
-- `name` (VARCHAR)
-- `description` (VARCHAR)
-- `price` (DECIMAL)
-- `available` (BOOLEAN)
-- `category` (VARCHAR)
-- `created_at` (TIMESTAMP)
-- `updated_at` (TIMESTAMP)
+- id, restaurant_id, name, description
+- price, available, category
+- created_at, updated_at
 
-## Error Handling
+## Authorization Rules
 
-The service returns standardized error responses:
+### ADMIN
+- Delete any restaurant
+- Enable/disable any restaurant
+- Manage all menu items
 
-```json
-{
-  "timestamp": "2024-02-10T21:43:24",
-  "status": 404,
-  "error": "Not Found",
-  "message": "Restaurant not found with id: 1",
-  "path": "/api/restaurants/1"
-}
-```
-
-HTTP Status Codes:
-- `200 OK` - Success
-- `201 Created` - Resource created
-- `400 Bad Request` - Validation error
-- `401 Unauthorized` - Missing/invalid token
-- `403 Forbidden` - Insufficient permissions
-- `404 Not Found` - Resource not found
-- `500 Internal Server Error` - Server error
-
-## Architecture
-
-The system follows a microservices architecture with:
-- **Service Discovery:** Eureka Server for service registration and discovery
-- **Clean Architecture:** Layered design (Controller → Service → Repository)
-- **Security:** JWT-based authentication and role-based authorization
-- **Database:** MySQL with JPA/Hibernate
-- **Containerization:** Docker support for easy deployment
+### RESTAURANT_OWNER
+- Create restaurants
+- Update only their own restaurants
+- Manage menu items for their own restaurants
 
 ## Development
 
-### Build the Project
+### Build All Services
 ```bash
+# Build Eureka Server
+cd eureka-server
+mvn clean install
+
+# Build Restaurant Service
+cd ../restaurant-service
 mvn clean install
 ```
 
 ### Run Tests
 ```bash
+cd restaurant-service
 mvn test
 ```
 
-### Build Docker Image
-```bash
-docker build -t restaurant-service .
-```
+## Architecture
+
+- **Microservices Architecture:** Independent, scalable services
+- **Service Discovery:** Eureka for dynamic service registration
+- **Clean Architecture:** Layered design (Controller → Service → Repository)
+- **Security:** JWT authentication with role-based authorization
+- **Database:** MySQL with JPA/Hibernate
+- **Containerization:** Docker support for deployment
 
 ## Contributing
 
