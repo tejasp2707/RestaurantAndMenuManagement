@@ -1,108 +1,115 @@
-# Restaurant and Menu Management Microservice
+# Restaurant and Menu Management System
 
-A production-ready microservice for managing restaurants and menus in a food delivery system, built with Spring Boot 3.x and Java 17.
+A microservices-based Food Delivery System built with Spring Boot 3.x and Java 17.
 
-## Features
+## Repository Structure
 
-- **Restaurant Management**: Create, update, delete, and manage restaurant profiles
-- **Menu Management**: Add, update, delete, and manage menu items for restaurants
-- **JWT Authentication**: Secure endpoints with JWT-based authentication
-- **Role-Based Authorization**: ADMIN and RESTAURANT_OWNER roles with specific permissions
-- **Ownership Validation**: Ensures restaurant owners can only manage their own resources
-- **Service Discovery**: Integrates with Eureka for service registration
-- **Docker Support**: Containerized deployment with Docker and Docker Compose
+```
+RestaurantAndMenuManagement/
+├── eureka-server/              # Service Discovery Server
+│   ├── src/
+│   ├── pom.xml
+│   └── Dockerfile
+│
+├── src/                        # Restaurant Service Source Code
+│   └── main/
+│       ├── java/
+│       │   └── com/fooddelivery/restaurant/
+│       │       ├── controller/
+│       │       ├── service/
+│       │       ├── repository/
+│       │       ├── entity/
+│       │       ├── dto/
+│       │       ├── mapper/
+│       │       ├── security/
+│       │       ├── exception/
+│       │       └── config/
+│       └── resources/
+│           └── application.yml
+│
+├── pom.xml                     # Restaurant Service Maven Config
+├── Dockerfile                  # Restaurant Service Docker
+├── docker-compose.yml          # Multi-service Docker Compose
+└── README.md                   # This file
+```
+
+## Services
+
+### 1. Eureka Server (Service Discovery)
+- **Port:** 8761
+- **Purpose:** Service registry for microservices discovery
+- **Dashboard:** http://localhost:8761
+
+### 2. Restaurant Service
+- **Port:** 8081
+- **Purpose:** Restaurant and menu management microservice
+- **Features:**
+  - Restaurant CRUD operations
+  - Menu item management
+  - JWT authentication
+  - Role-based authorization (ADMIN, RESTAURANT_OWNER)
+  - Ownership validation
 
 ## Tech Stack
 
 - **Java 17**
 - **Spring Boot 3.2.2**
+- **Spring Cloud 2023.0.0**
+- **Spring Security with JWT**
 - **Spring Data JPA**
-- **Spring Security**
 - **MySQL 8.0**
-- **Eureka Client**
-- **JWT (jjwt 0.12.3)**
+- **Eureka Server/Client**
+- **Docker & Docker Compose**
 - **Maven**
-- **Docker**
-
-## Architecture
-
-The service follows a clean layered architecture:
-
-```
-├── controller/     # REST API endpoints
-├── service/        # Business logic
-├── repository/     # Data access layer
-├── entity/         # JPA entities
-├── dto/            # Data transfer objects
-├── mapper/         # Entity-DTO mappers
-├── security/       # JWT authentication & authorization
-├── exception/      # Custom exceptions & global handler
-└── config/         # Spring configuration
-```
 
 ## Prerequisites
 
-- Java 17
+- Java 17 or higher
 - Maven 3.6+
 - MySQL 8.0
-- Eureka Server (running on port 8761)
+- Docker (optional)
 
-## Configuration
+## Getting Started
 
-Update `src/main/resources/application.yml`:
+### Option 1: Run with Maven (Local Development)
 
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/restaurant_db
-    username: root
-    password: your_password
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-
-jwt:
-  secret: your_jwt_secret_key
-```
-
-## Running Locally
-
-### 1. Start MySQL
+#### 1. Start MySQL Database
 ```bash
-# Using Docker
 docker run -d -p 3306:3306 --name mysql \
   -e MYSQL_ROOT_PASSWORD=root \
   -e MYSQL_DATABASE=restaurant_db \
   mysql:8.0
 ```
 
-### 2. Start Eureka Server
-Ensure Eureka Server is running on port 8761
-
-### 3. Build and Run
+#### 2. Start Eureka Server
 ```bash
-mvn clean install
+cd eureka-server
 mvn spring-boot:run
 ```
+Access Eureka Dashboard: http://localhost:8761
 
-The service will start on port **8081**.
+#### 3. Start Restaurant Service
+```bash
+# In a new terminal, from the root directory
+mvn spring-boot:run
+```
+Service will run on: http://localhost:8081
 
-## Running with Docker
+### Option 2: Run with Docker Compose
 
-### Build and Run with Docker Compose
 ```bash
 docker-compose up --build
 ```
 
 This will start:
-- MySQL database on port 3306
-- Restaurant service on port 8081
+- MySQL database (port 3306)
+- Restaurant service (port 8081)
 
-## API Endpoints
+**Note:** You'll need to start Eureka Server separately or add it to docker-compose.
 
-### Restaurant Endpoints
+## Restaurant Service API Endpoints
+
+### Restaurant Management
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
@@ -114,7 +121,7 @@ This will start:
 | GET | `/api/restaurants` | Get all restaurants | Public |
 | GET | `/api/restaurants/owner/{ownerId}` | Get restaurants by owner | Public |
 
-### Menu Endpoints
+### Menu Management
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
@@ -149,7 +156,7 @@ The JWT token must contain:
 - Can update only their own restaurants
 - Can manage menu items only for their own restaurants
 
-## Example Requests
+## Example API Requests
 
 ### Create Restaurant
 ```bash
@@ -164,6 +171,11 @@ curl -X POST http://localhost:8081/api/restaurants \
   }'
 ```
 
+### Get All Restaurants (Public)
+```bash
+curl http://localhost:8081/api/restaurants
+```
+
 ### Add Menu Item
 ```bash
 curl -X POST http://localhost:8081/api/restaurants/1/menu \
@@ -176,6 +188,30 @@ curl -X POST http://localhost:8081/api/restaurants/1/menu \
     "category": "Pizza"
   }'
 ```
+
+## Configuration
+
+### Restaurant Service Configuration
+Edit `src/main/resources/application.yml`:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/restaurant_db
+    username: root
+    password: your_password
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  secret: your_jwt_secret_key
+```
+
+### Eureka Server Configuration
+Edit `eureka-server/src/main/resources/application.yml` as needed.
 
 ## Database Schema
 
@@ -224,36 +260,44 @@ HTTP Status Codes:
 - `404 Not Found` - Resource not found
 - `500 Internal Server Error` - Server error
 
-## Service Discovery
+## Architecture
 
-The service registers itself with Eureka Server as `restaurant-service`. Other services can discover and communicate with it through Eureka.
+The system follows a microservices architecture with:
+- **Service Discovery:** Eureka Server for service registration and discovery
+- **Clean Architecture:** Layered design (Controller → Service → Repository)
+- **Security:** JWT-based authentication and role-based authorization
+- **Database:** MySQL with JPA/Hibernate
+- **Containerization:** Docker support for easy deployment
 
 ## Development
 
-### Project Structure
-```
-src/main/java/com/fooddelivery/restaurant/
-├── RestaurantServiceApplication.java
-├── config/
-├── controller/
-├── dto/
-├── entity/
-├── exception/
-├── mapper/
-├── repository/
-├── security/
-└── service/
+### Build the Project
+```bash
+mvn clean install
 ```
 
-### Best Practices Followed
-- Constructor injection for dependencies
-- DTOs for all external APIs
-- No direct entity exposure
-- Global exception handling
-- Transaction management
-- Proper validation
-- Clean architecture
+### Run Tests
+```bash
+mvn test
+```
+
+### Build Docker Image
+```bash
+docker build -t restaurant-service .
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
 MIT License
+
+## Contact
+
+For questions or support, please open an issue in the repository.
