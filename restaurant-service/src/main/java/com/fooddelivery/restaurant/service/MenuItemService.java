@@ -139,6 +139,6 @@ public class MenuItemService {
     }
     
     private boolean isAdmin(UserPrincipal user) {
-        return user.getRole().equals("ROLE_ADMIN");
+        return user.getRole().equals("ADMIN");
     }
 }
